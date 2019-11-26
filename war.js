@@ -1,6 +1,23 @@
 window.onload = function() {
+  /* 
+The approach for this coding exercise was to
+  1. Declare the shape of a card, suits and values
+  2. Functionality for constructing the individual card objects - buildCards()
+  3. Functionality for shuffling the cards - shuffleCards()
+  4. Functionality for dealing the cards - dealCards()
+  5. At this point in the project these methods are all that are needed to construct a deck of cards and deal to two players.
+      With the current code structure if additional players would be needed the code would have to be adjusted 
+        let playerKey = cards % 4 in dealCards() and also in the player multidimensional declaration let players = [[], [], [], []];
+  6. The HTML structure would also need to be adjusted to account for additional player containers.
+  7. When the game is instantiated for the first time the deck is built, shuffled and dealt. 
+      goToWar() first declares the newGame to false, otherwise the methods described in the above steps would fire each time the Go To War button was pressed
+  8. The rest of the code is a series of comparisson operations to determine the value and point allocation for a given player
+      A condition of valid game play is that a player has more than 4 cards in their deck array, when this condition is no longet met the game is declared over
+  9. Logic has also been built in to account for a tie during game play if during the comparisson operation checkWinner() there is no clear winner the 
+      resolveTie() method is called. The array for each player is increased by 4 additional cards and they last value is used to determine checkWinner().
+*/
   const suits = ["spades", "diams", "hearts", "clubs"];
-  const cardFace = [
+  const cardValues = [
     "2",
     "3",
     "4",
@@ -15,44 +32,48 @@ window.onload = function() {
     "K",
     "A"
   ];
+
+  //Declare variables
   let cards = [];
   let players = [[], []];
-  let firstRun = true;
+  let newGame = true;
   let gameOver = false;
+
+  //Declare Query Selectors
   const warButton = document.querySelector("#btnWar");
-  const p1 = document.querySelector("#player1 .hand");
-  const p2 = document.querySelector("#player2 .hand");
-  const s1 = document.querySelector("#player1Score");
-  const s2 = document.querySelector("#player2Score");
+  const playerOne = document.querySelector("#player1 .hand");
+  const playerTwo = document.querySelector("#player2 .hand");
+  const playerOneScore = document.querySelector("#player1Score");
+  const playerTwoScore = document.querySelector("#player2Score");
 
   //event listener
   warButton.addEventListener("click", goToWar);
 
   //functions
   function goToWar() {
-    if (firstRun) {
-      firstRun = false;
+    if (newGame) {
+      newGame = false;
       buildCards();
-      shuffleArray(cards);
+      shuffleCards(cards);
       dealCards(cards);
     }
-
-    attack();
+    declareWar();
   }
 
-  function attack() {
+  function declareWar() {
     if (!gameOver) {
-      var card1 = players[0].shift();
-      var card2 = players[1].shift();
-      var pot = [card1, card2];
+      //Shift to move through the cards, removes first element from array
+      let playerCardOne = players[0].shift();
+      let playerCardTwo = players[1].shift();
+      let pot = [playerCardOne, playerCardTwo];
       //Update HTML
-      p1.innerHTML = showCard(card1, 0);
-      p2.innerHTML = showCard(card2, 0);
+      playerOne.innerHTML = showCard(playerCardOne, 0);
+      playerTwo.innerHTML = showCard(playerCardTwo, 0);
       //Check Winners
-      checkWinner(card1, card2, pot);
+      checkWinner(playerCardOne, playerCardTwo, pot);
       //Update Scores
-      s1.innerHTML = players[0].length;
-      s2.innerHTML = players[1].length;
+      playerOneScore.innerHTML = players[0].length;
+      playerTwoScore.innerHTML = players[1].length;
     } else {
       outputMessage("Game Over");
     }
@@ -62,89 +83,103 @@ window.onload = function() {
     document.getElementById("message").innerHTML = message;
   }
 
-  function checkWinner(card1, card2, pot) {
-    if (players[0].length <= 4 || players[1].length <= 4) {
-      gameOver = true;
-      outputMessage("Game Over");
-      return;
-    }
-    if (card1.cardValue > card2.cardValue) {
+  //This function takes the arguments of players cards and the pot array
+  //It looks to see if either player has less than 4 cards, the condition for victory
+  function checkWinner(playerCardOne, playerCardTwo, pot) {
+    playerValues = [0, 1];
+    playerValues.map(value => {
+      if (players[value].length <= 4) {
+        gameOver = true;
+        outputMessage("Game Over");
+        return;
+      }
+    });
+    if (playerCardOne.cardValue > playerCardTwo.cardValue) {
       outputMessage("Player 1 Wins");
       players[0] = players[0].concat(pot);
-    } else if (card1.cardValue < card2.cardValue) {
+    } else if (playerCardOne.cardValue < playerCardTwo.cardValue) {
       outputMessage("Player 2 Wins");
       players[1] = players[1].concat(pot);
     } else {
-      battlemode(pot);
-      outputMessage("Tie");
+      resolveTie(pot);
     }
   }
 
-  function battlemode(pot) {
-    var card1, card2;
-    var pos = pot.length / 2;
+  function resolveTie(pot) {
+    let playerCardOne, playerCardTwo;
+    //Position is important for tie UI so the cards will stack
+    //Card is declared in css as poition absolute
+    //Under normal conditions, no tie, no value will be passed
+    let position = pot.length / 2;
+
     if (players[0].length < 4 || players[1].length < 4) {
       gameOver = true;
       outputMessage("Game Over");
       return;
     } else {
       for (var i = 0; i < 4; i++) {
-        card1 = players[0].shift();
-        pot = pot.concat(card1);
-        p1.innerHTML += showCard(card1, pos + i);
+        playerCardOne = players[0].shift();
+        pot = pot.concat(playerCardOne);
+        playerOne.innerHTML += showCard(playerCardOne, position + i);
       }
       for (var i = 0; i < 4; i++) {
-        card2 = players[1].shift();
-        pot = pot.concat(card2);
-        p2.innerHTML += showCard(card2, pos + i);
+        playerCardTwo = players[1].shift();
+        pot = pot.concat(playerCardTwo);
+        playerTwo.innerHTML += showCard(playerCardTwo, position + i);
       }
-      checkWinner(card1, card2, pot);
+      checkWinner(playerCardOne, playerCardTwo, pot);
     }
   }
 
-  function showCard(c, p) {
-    var move = p * 40;
-    var bCard =
-      '<div class="icard ' + c.suit + '" style="left:' + move + 'px">';
-    bCard += '<div class="cardTop suit">' + c.num + "<br></div>";
-    bCard += '<div class="cardMid suit"></div>';
-    bCard += '<div class="cardBottom suit">' + c.num + "<br></div></div>";
-    return bCard;
+  function showCard(card, position) {
+    //Move cards by pixel designation to allow them ot
+    let stackCards = position * 40;
+    let playedCard = `<div class="individualCard ${card.suit}" style="left:${stackCards}px">
+     <div class="cardTop suit">${card.num}<br></div>
+     <div class="cardMid suit"></div>
+     <div class="cardBottom suit">${card.num}<br></div>
+     </div>`;
+    return playedCard;
   }
 
   //Build a deck of Cards
   function buildCards() {
+    //Declaration of an empty card array
     cards = [];
-    for (s in suits) {
-      var suitNew = suits[s][0].toUpperCase();
-      for (n in cardFace) {
+    for (suit in suits) {
+      var suitNew = suits[suit][0].toUpperCase();
+      for (numberValue in cardValues) {
+        //Build the card object
         var card = {
-          suit: suits[s],
-          num: cardFace[n],
-          cardValue: parseInt(n) + 2,
+          suit: suits[suit],
+          num: cardValues[numberValue],
+          cardValue: parseInt(numberValue) + 2,
           icon: suitNew
         };
+        //Add the card to the Cards Array
         cards.push(card);
       }
     }
   }
 
-  //Modulous operator to see if the deck has been dealt to the multi dimensional array
-  function dealCards(array) {
-    for (var i = 0; i < array.length; i++) {
-      var m = i % 2;
-      players[m].push(array[i]);
-    }
-  }
-
   //Passing in the array of cards from build deck and shuffling them
-  function shuffleArray(array) {
-    for (var x = array.length - 1; x > 0; x--) {
-      var ii = Math.floor(Math.random() * (x + 1));
-      var temp = array[x];
-      array[x] = array[ii];
-      array[ii] = temp;
+  function shuffleCards(array) {
+    //Take the original array length and decrement by one to randomize order
+    for (let cardArray = array.length - 1; cardArray > 0; cardArray--) {
+      let key = Math.floor(Math.random() * (cardArray + 1));
+      let temp = array[cardArray];
+      array[cardArray] = array[key];
+      array[key] = temp;
     }
     return array;
+  }
+
+  //Modulous operator to see if the deck has been dealt to the multi dimensional array ie. players
+  //Building the individual players decks (array of cards)
+  function dealCards(array) {
+    for (let cards = 0; cards < array.length; cards++) {
+      let playerKey = cards % 2;
+      players[playerKey].push(array[cards]);
+    }
   }
 };
