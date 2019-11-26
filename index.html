@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>THE GAME OF WAR</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="war.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row mt-1">
+        <div class="col-md-12"><h3>THE GAME OF WAR</h3></div>
+      </div>
+      <div class="row mt-2">
+        <div id="player1" class="col-md mr-1 players">
+          <div class="hand"></div>
+        </div>
+
+        <div id="player2" class="col-md mr-1 players">
+          <div class="hand"></div>
+        </div>
+      </div>
+      <div class="row mt-2">
+        <div class="col-md-8" id="message"></div>
+        <div class="col-md-4 text-right">
+          <button type="button" id="btnWar" class="btn btn-primary btn-lg">
+            Go to War
+          </button>
+        </div>
+      </div>
+      <table class="table table-bordered mt-3">
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Cards Left</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="table-success">
+            <td>1</td>
+            <td id="player1Score">26</td>
+          </tr>
+          <tr class="table-danger">
+            <td>2</td>
+            <td id="player2Score">26</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>
